@@ -24,22 +24,15 @@ func signupUser(w http.ResponseWriter, r *http.Request) {
 	ctxTimeout, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	nU, err := service.SaveUser(ctxTimeout, newUser)
+	_, err = service.SaveUser(ctxTimeout, newUser)
 	if err != nil {
 		log.Printf("Error: %v", err)
 		http.Error(w, "could not create this user", http.StatusInternalServerError)
 		return
 	}
 
-	jsonResp, err := json.MarshalIndent(nU, "", " ")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	w.Write(jsonResp)
 }
 
 func loginUser(w http.ResponseWriter, r *http.Request) {
