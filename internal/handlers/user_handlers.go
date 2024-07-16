@@ -77,7 +77,7 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func getBalance(w http.ResponseWriter, r *http.Request) {
-	idStr := r.URL.Path[len("get-balance"):]
+	idStr := r.URL.Path[len("/get-balance"):]
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
