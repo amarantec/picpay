@@ -1,7 +1,0 @@
-POST http://192.168.2.41:8080/user-login
-Content-Type: application/json
-
-{
-    "email": "test4@test.com",
-    "password": "testando4"
-}
