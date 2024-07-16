@@ -7,6 +7,7 @@ func SetRoutes() *http.ServeMux {
 
 	mux.HandleFunc("/user-signup", signupUser)
 	mux.HandleFunc("/user-login", loginUser)
+	mux.HandleFunc("/get-balance", getBalance)
 
 	return mux
 }

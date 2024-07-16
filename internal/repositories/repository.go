@@ -14,4 +14,5 @@ type RepositoryPostgres struct {
 type Repository interface {
 	SaveUser(ctx context.Context, user models.User) (models.User, error)
 	ValidateUserCredentials(ctx context.Context, user models.User) error
+	GetTotalBalanceAccount(ctx context.Context, id int64) (float64, error)
 }

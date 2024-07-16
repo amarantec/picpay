@@ -13,7 +13,7 @@ func (s Service) SaveUser(ctx context.Context, user models.User) (models.User, e
 	if user.LastName == "" {
 		return models.User{}, ErrUserLastNameEmpty
 	}
-	if user.CPF == "" {
+	if user.Document == "" {
 		return models.User{}, ErrUserCPFEmpty
 	}
 	if user.Email == "" {
@@ -28,4 +28,8 @@ func (s Service) SaveUser(ctx context.Context, user models.User) (models.User, e
 
 func (s Service) ValidateUserCredentials(ctx context.Context, user models.User) error {
 	return s.Repository.ValidateUserCredentials(ctx, user)
+}
+
+func (s Service) GetTotalBalanceAccount(ctx context.Context, id int64) (float64, error) {
+	return s.Repository.GetTotalBalanceAccount(ctx, id)
 }
