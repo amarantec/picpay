@@ -1,0 +1,10 @@
+POST http://localhost:8080/user-signup
+Content-Type: application/json
+
+{
+    "first_name": "test",
+    "last_name": "testando",
+    "cpf": "123.456.789-09",
+    "email": "test@test.com",
+    "password": "testando"
+}
