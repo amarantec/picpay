@@ -56,3 +56,41 @@ func (r *RepositoryPostgres) GetTotalBalanceAccount(ctx context.Context, id int6
 
 	return user.Balance, nil
 }
+
+func (r *RepositoryPostgres) Transfer(ctx context.Context, senderId int64, receiverId int64, value float64) error {
+	tx, err := r.Conn.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+	var user = models.User{Id: senderId}
+	err = tx.QueryRow(
+		ctx,
+		`SELECT balance FROM users WHERE id=$1`, senderId).Scan(&user.Balance)
+	if err != nil {
+		return err
+	}
+
+	if user.Balance < value {
+		return err
+	}
+
+	_, err = tx.Exec(
+		ctx,
+		`UPDATE user SET balance = balance - $1 WHERE id = $2`, value, senderId)
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(
+		ctx,
+		`UPDATE user SET balance = balance + $1 WHERE id = $2`, value, receiverId)
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
+}

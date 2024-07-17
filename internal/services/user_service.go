@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 
 	"github.com/amarantec/picpay/internal/models"
 )
@@ -32,4 +33,14 @@ func (s Service) ValidateUserCredentials(ctx context.Context, user models.User) 
 
 func (s Service) GetTotalBalanceAccount(ctx context.Context, id int64) (float64, error) {
 	return s.Repository.GetTotalBalanceAccount(ctx, id)
+}
+
+func (s Service) Transfer(ctx context.Context, senderId int64, receiverId int64, value float64) error {
+	var user = models.User{Id: senderId}
+
+	if user.Balance < value {
+		return errors.New("insufficient funds")
+	}
+
+	return s.Transfer(ctx, senderId, receiverId, value)
 }
