@@ -45,8 +45,7 @@ func (r *RepositoryPostgres) GetTotalBalanceAccount(ctx context.Context, id int6
 	var user = models.User{Id: id}
 	err := r.Conn.QueryRow(
 		ctx,
-		"SELECT balance FROM users WHERE id=$1", id).Scan(
-		&user.Id, &user.Balance)
+		"SELECT balance FROM users WHERE id=$1", id).Scan(&user.Balance)
 	if err != nil {
 		return 0, err
 	}

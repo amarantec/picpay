@@ -77,7 +77,19 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func getBalance(w http.ResponseWriter, r *http.Request) {
-	idStr := r.URL.Path[len("/get-balance"):]
+	token := r.Header.Get("Authorization")
+	if token == "" {
+		http.Error(w, "Authorization header is required", http.StatusUnauthorized)
+		return
+	}
+
+	err := utils.VerifyToken(token)
+	if err != nil {
+		http.Error(w, "Not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	idStr := r.URL.Path[len("/get-balance/"):]
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
