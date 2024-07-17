@@ -77,17 +77,7 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func getBalance(w http.ResponseWriter, r *http.Request) {
-	token := r.Header.Get("Authorization")
-	if token == "" {
-		http.Error(w, "Authorization header is required", http.StatusUnauthorized)
-		return
-	}
-
-	err := utils.VerifyToken(token)
-	if err != nil {
-		http.Error(w, "Not authorized", http.StatusUnauthorized)
-		return
-	}
+	var user models.User
 
 	idStr := r.URL.Path[len("/get-balance/"):]
 	id, err := strconv.Atoi(idStr)
@@ -98,6 +88,10 @@ func getBalance(w http.ResponseWriter, r *http.Request) {
 
 	ctxTimeout, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+
+	userId := r.Context().Value("userId").(int64)
+
+	user.Id = userId
 
 	balance, err := service.GetTotalBalanceAccount(ctxTimeout, int64(id))
 	if err != nil {
