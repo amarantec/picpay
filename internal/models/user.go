@@ -8,5 +8,6 @@ type User struct {
 	Email     string   `json:"email"`
 	Password  string   `json:"password"`
 	Balance   float64  `json:"balance"`
+	UserId    int64    `json:"user_id"`
 	UserType  UserType `json:"user_type"`
 }

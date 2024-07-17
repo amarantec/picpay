@@ -8,7 +8,7 @@ import (
 
 func SetRoutes() *http.ServeMux {
 	mux := http.NewServeMux()
-
+	
 	mux.HandleFunc("/user-signup", signupUser)
 	mux.HandleFunc("/user-login", loginUser)
 	mux.HandleFunc("/get-balance/{id}", middleware.Authenticate(getBalance))

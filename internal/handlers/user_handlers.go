@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/amarantec/picpay/internal/middleware"
 	"github.com/amarantec/picpay/internal/models"
 	"github.com/amarantec/picpay/internal/utils"
 )
@@ -89,9 +90,9 @@ func getBalance(w http.ResponseWriter, r *http.Request) {
 	ctxTimeout, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	userId := r.Context().Value("userId").(int64)
+	userId := r.Context().Value(middleware.UserIdKey).(int64)
 
-	user.Id = userId
+	user.UserId = userId
 
 	balance, err := service.GetTotalBalanceAccount(ctxTimeout, int64(id))
 	if err != nil {
