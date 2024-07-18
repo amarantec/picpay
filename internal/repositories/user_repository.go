@@ -83,7 +83,7 @@ func (r *RepositoryPostgres) Transfer(ctx context.Context, senderId int64, recei
 	var user = models.User{Id: receiverId}
 	err = tx.QueryRow(
 		ctx,
-		`SELECT id, first_name, last_name, balance FROM users WHERE id=$1`, receiverId).Scan(&user.Id, &user.FirstName, &user.LastName, &user.Balance)
+		`SELECT first_name, last_name, balance FROM users WHERE id=$1`, receiverId).Scan(&user.FirstName, &user.LastName, &user.Balance)
 
 	if err == pgx.ErrNoRows {
 		log.Printf("no user detected: %v", err)
@@ -92,13 +92,13 @@ func (r *RepositoryPostgres) Transfer(ctx context.Context, senderId int64, recei
 
 	_, err = tx.Exec(
 		ctx,
-		`UPDATE user SET balance = balance - $1 WHERE id = $2`, value, senderId)
+		`UPDATE users SET balance = balance - $1 WHERE id = $2`, value, senderId)
 	if err != nil {
 		return err
 	}
 	_, err = tx.Exec(
 		ctx,
-		`UPDATE user SET balance = balance + $1 WHERE id = $2`, value, receiverId)
+		`UPDATE users SET balance = balance + $1 WHERE id = $2`, value, receiverId)
 	if err != nil {
 		return err
 	}

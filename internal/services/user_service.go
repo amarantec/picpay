@@ -50,5 +50,5 @@ func (s Service) Transfer(ctx context.Context, senderId int64, receiverId int64,
 	if value == 0 {
 		return ErrValueEmpty
 	}
-	return s.Repository.Transfer2(ctx, senderId, receiverId, value)
+	return s.Repository.Transfer(ctx, senderId, receiverId, value)
 }
