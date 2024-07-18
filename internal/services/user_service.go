@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"errors"
 
 	"github.com/amarantec/picpay/internal/models"
 )
@@ -15,7 +14,7 @@ func (s Service) SaveUser(ctx context.Context, user models.User) (models.User, e
 		return models.User{}, ErrUserLastNameEmpty
 	}
 	if user.Document == "" {
-		return models.User{}, ErrUserCPFEmpty
+		return models.User{}, ErrUserDocumentEmpty
 	}
 	if user.Email == "" {
 		return models.User{}, ErrUserEmailEmpty
@@ -28,6 +27,12 @@ func (s Service) SaveUser(ctx context.Context, user models.User) (models.User, e
 }
 
 func (s Service) ValidateUserCredentials(ctx context.Context, user models.User) error {
+	if user.Email == "" {
+		return ErrUserEmailEmpty
+	}
+	if user.Password == "" {
+		return ErrUserPasswordEmpty
+	}
 	return s.Repository.ValidateUserCredentials(ctx, user)
 }
 
@@ -36,11 +41,14 @@ func (s Service) GetTotalBalanceAccount(ctx context.Context, id int64) (float64,
 }
 
 func (s Service) Transfer(ctx context.Context, senderId int64, receiverId int64, value float64) error {
-	var user = models.User{Id: senderId}
-
-	if user.Balance < value {
-		return errors.New("insufficient funds")
+	if senderId == 0 {
+		return ErrSenderIdEmpty
 	}
-
-	return s.Transfer(ctx, senderId, receiverId, value)
+	if receiverId == 0 {
+		return ErrReceiverIdEmpty
+	}
+	if value == 0 {
+		return ErrValueEmpty
+	}
+	return s.Repository.Transfer2(ctx, senderId, receiverId, value)
 }

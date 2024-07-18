@@ -3,9 +3,11 @@ package repositories
 import (
 	"context"
 	"errors"
+	"log"
 
 	"github.com/amarantec/picpay/internal/models"
 	"github.com/amarantec/picpay/internal/utils"
+	"github.com/jackc/pgx/v5"
 )
 
 func (r *RepositoryPostgres) SaveUser(ctx context.Context, user models.User) (models.User, error) {
@@ -43,13 +45,15 @@ func (r *RepositoryPostgres) ValidateUserCredentials(ctx context.Context, user m
 
 func (r *RepositoryPostgres) GetTotalBalanceAccount(ctx context.Context, id int64) (float64, error) {
 	var user = models.User{Id: id}
+
 	err := r.Conn.QueryRow(
 		ctx,
 		`
 		SELECT 
+		id
 		COALESCE (balance, 0.0) AS balance 
 		FROM users WHERE id=$1
-		`, id).Scan(&user.Balance)
+		`, id).Scan(&user.Id, &user.Balance)
 	if err != nil {
 		return 0, err
 	}
@@ -63,15 +67,26 @@ func (r *RepositoryPostgres) Transfer(ctx context.Context, senderId int64, recei
 		return err
 	}
 	defer tx.Rollback(ctx)
-	var user = models.User{Id: senderId}
+	var balance float64
 	err = tx.QueryRow(
 		ctx,
-		`SELECT balance FROM users WHERE id=$1`, senderId).Scan(&user.Balance)
+		`SELECT balance FROM users WHERE id=$1`, senderId).Scan(&balance)
 	if err != nil {
 		return err
 	}
 
-	if user.Balance < value {
+	if balance < value {
+		log.Println("insuficient funds")
+		return err
+	}
+
+	var user = models.User{Id: receiverId}
+	err = tx.QueryRow(
+		ctx,
+		`SELECT id, first_name, last_name, balance FROM users WHERE id=$1`, receiverId).Scan(&user.Id, &user.FirstName, &user.LastName, &user.Balance)
+
+	if err == pgx.ErrNoRows {
+		log.Printf("no user detected: %v", err)
 		return err
 	}
 

@@ -111,68 +111,82 @@ func getBalance(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonResp)
 }
+
 /*
+	func transfer(w http.ResponseWriter, r *http.Request) {
+		var user models.User
+		idStr := r.URL.Path[len("/transfer/"):]
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			http.Error(w, "Invalid sender_id", http.StatusBadRequest)
+			return
+		}
+
+		rUser, err := strconv.Atoi(r.URL.Query().Get("destinatario_id"))
+		if err != nil {
+			http.Error(w, "Invalid destinatario_id", http.StatusBadRequest)
+			return
+		}
+
+		value, err := strconv.ParseFloat(r.URL.Query().Get("valor"), 64)
+		if err != nil {
+			http.Error(w, "Invalid valor", http.StatusBadRequest)
+			return
+		}
+		ctxTimeout, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		userId := r.Context().Value(middleware.UserIdKey).(int64)
+		user.UserId = userId
+
+		err = service.Transfer(ctxTimeout, int64(id), int64(rUser), value)
+		if err != nil {
+			log.Printf("Error: %v", err)
+			http.Error(w, "could not transfer this value", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+	}
+*/
 func transfer(w http.ResponseWriter, r *http.Request) {
 	var user models.User
-	var rUser int64
-	var value float64
-
 	idStr := r.URL.Path[len("/transfer/"):]
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Invalid sender_id", http.StatusBadRequest)
 		return
 	}
 
-	err = json.NewDecoder(r.Body).Decode(&value)
+	rUser, err := strconv.Atoi(r.URL.Query().Get("destinatario_id"))
 	if err != nil {
-		log.Printf("Error: %v", err)
-		http.Error(w, "could not transfer", http.StatusBadRequest)
+		http.Error(w, "Invalid destinatario_id", http.StatusBadRequest)
 		return
 	}
 
+	value, err := strconv.ParseFloat(r.URL.Query().Get("valor"), 64)
+	if err != nil {
+		http.Error(w, "Invalid valor", http.StatusBadRequest)
+		return
+	}
 	ctxTimeout, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	userId := r.Context().Value(middleware.UserIdKey).(int64)
 	user.UserId = userId
 
-	err = service.Transfer(ctxTimeout, int64(id), rUser, value)
+	authorized, err := middleware.CheckExternService()
 	if err != nil {
-		log.Printf("Error: %v", err)
-		http.Error(w, "could not transfer this value", http.StatusInternalServerError)
+		fmt.Printf("Error: %v", err)
+		http.Error(w, "Error when get extern authorization", http.StatusInternalServerError)
 		return
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-}
-*/
-
-func transfer(w http.ResponseWriter, r *http.Request) {
-	var user models.User
-	id, err := strconv.Atoi(r.URL.Query().Get("remetente_id"))
-    if err != nil {
-        http.Error(w, "Invalid remetente_id", http.StatusBadRequest)
-        return
-    }
-
-    rUser, err := strconv.Atoi(r.URL.Query().Get("destinatario_id"))
-    if err != nil {
-        http.Error(w, "Invalid destinatario_id", http.StatusBadRequest)
-        return
-    }
-
-    value, err := strconv.ParseFloat(r.URL.Query().Get("valor"), 64)
-    if err != nil {
-        http.Error(w, "Invalid valor", http.StatusBadRequest)
-        return
-    }
-	ctxTimeout, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	userId := r.Context().Value(middleware.UserIdKey).(int64)
-	user.UserId = userId
+	if !authorized {
+		fmt.Printf("Error transfer not authorized: %v", err)
+		http.Error(w, "Transfer not authorized", http.StatusInternalServerError)
+		return
+	}
 
 	err = service.Transfer(ctxTimeout, int64(id), int64(rUser), value)
 	if err != nil {
